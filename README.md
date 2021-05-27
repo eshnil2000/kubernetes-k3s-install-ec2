@@ -343,7 +343,8 @@ sudo kubectl port-forward --address 0.0.0.0 service/traefik 8000:8000 8080:8080 
 kubectl apply -f ingress-routes.yaml
 
 //ingress-routes.yaml
-apiVersion: traefik.containo.us/v1alpha1
+```
+ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: simpleingressroute
@@ -374,7 +375,7 @@ spec:
       port: 80
   tls:
     certResolver: myresolver  
-
+```
 =====
 
 curl [-k] https://your.example.com/tls
@@ -383,3 +384,73 @@ curl http://your.example.com:8000/notls
 
 //dashboard
 http://www.codenovator.net:8080/dashboard/#/http/routers
+ 
+// to set up LetsEncrypt :
+ https://bitbucket.org/eshnil2000/server-setup/src/master/docker-compose.traefik-labs.yml
+ ```
+ #docker network create -d overlay --attachable traefik_default
+# save sensitive variables in .env file
+#validate config using : docker-compose -f docker-compose.traefik-labs.yml config
+# env $(cat .env | grep ^[A-Z] | xargs) docker stack deploy -c docker-compose.traefik-labs.yml traefik
+version: '3'
+networks:
+  traefik_default:
+    driver: overlay
+    external:
+      name:  traefik_default
+services:
+  traefik:
+    # The latest official supported Traefik docker image
+    image: traefik:v2.3
+    # Enables the Traefik Dashboard and tells Traefik to listen to docker
+    # enable --log.level=INFO so we can see what Traefik is doing in the log files
+    ports:
+      # Exposes port 80 for incomming web requests
+      - "80:80"
+      - "443:443"
+      # The Web UI port http://0.0.0.0:8080 (enabled by --api.insecure=true)
+      #- "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Copies the Let's Encrypt certificate locally for ease of backing up
+      - /letsencrypt:/letsencrypt
+       # Mounts the Traefik static configuration inside the Traefik container
+      - ./traefik.dns.yml:/etc/traefik/traefik.yml
+    
+    networks:
+      traefik_default:
+
+    environment:
+      - "NAMECOM_API_TOKEN=${NAMECOM_API_TOKEN}"
+      - "NAMECOM_USERNAME=${NAMECOM_USERNAME}"
+    deploy:
+      labels:
+        - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN_NAME}`)"
+        - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${DOMAIN_NAME}`)"
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik.service=api@internal"
+        - "traefik.http.routers.traefik.entrypoints=web"
+        - "traefik.http.routers.traefik-secure.entrypoints=websecure"
+        - "traefik.http.routers.traefik-secure.tls.certresolver=myresolver" 
+        - "traefik.http.routers.traefik-secure.tls.domains[0].main=${DOMAIN_NAME}"
+        - "traefik.http.routers.traefik-secure.tls.domains[0].sans=*.${DOMAIN_NAME}"
+        - "traefik.http.routers.traefik-secure.tls=true"
+        - "traefik.http.routers.traefik-secure.service=api@internal"
+        - "traefik.http.routers.traefik.middlewares=test-auth"
+        - "traefik.http.routers.traefik-secure.middlewares=test-auth"
+        - "traefik.http.middlewares.test-auth.basicauth.users=${ADMIN_HASH}"
+        - "traefik.http.services.noop.loadbalancer.server.port=8080"
+        #- "traefik.docker.lbswarm=true"
+        # Create hash password -> echo $(htpasswd -nb user2 test123) | sed -e s/\\$/\\$\\$/g
+        #EXAMPLE: echo $(htpasswd -nb test test) | sed -e s/\\$/\\$\\$/g
+        #RESULT: test:$$apr1$$yNcnWSIn$$nDdzj/Uwufk9VdzBlRTFh/
+        #EXAMPLE IF LOADING FROM .env file: echo $(htpasswd -nb test test)
+      
+```
+ * contents of .env
+ ```
+NAMECOM_API_TOKEN=xxxx
+NAMECOM_USERNAME=xxx
+DOMAIN_NAME=dappsuni.com
+ ```
