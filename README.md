@@ -12,7 +12,7 @@ Prepare 2 EC2 instance nodes using Pulumi
 Open all inbound ports starting with port 80.
 Open all outbound ports
 Open port 22 to My IP Address only.
-
+```
 curl http://checkip.amazonaws.com
 Install kubectl (Laptop) 
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -341,7 +341,7 @@ kubectl apply -f TRAEFIK-MANUAL-INSTALL/deploy-traefik-whoami.yaml
 sudo kubectl port-forward --address 0.0.0.0 service/traefik 8000:8000 8080:8080 443:4443 -n default
 
 kubectl apply -f ingress-routes.yaml
-
+```
 //ingress-routes.yaml
 ```
  apiVersion: traefik.containo.us/v1alpha1
