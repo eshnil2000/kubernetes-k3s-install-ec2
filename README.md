@@ -452,5 +452,5 @@ services:
  ```
 NAMECOM_API_TOKEN=xxxx
 NAMECOM_USERNAME=xxx
-DOMAIN_NAME=dappsuni.com
+DOMAIN_NAME=www.codenovator.net
  ```
