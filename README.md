@@ -328,10 +328,10 @@ spec:
 /usr/local/bin/k3s-uninstall.sh
 //disable default traefik
 k3sup install --ip $SERVER_IP --user ubuntu  --ssh-key ~/keys/aws-poc.pem --k3s-extra-args '--disable traefik'
-
+```
 //follow
-https://doc.traefik.io/traefik/user-guides/crd-acme/#:~:text=Traefik%20with%20an%20IngressRoute%20Custom,TLS%20setup%20with%20Let's%20Encrypt.
-
+* https://doc.traefik.io/traefik/user-guides/crd-acme/#:~:text=Traefik%20with%20an%20IngressRoute%20Custom,TLS%20setup%20with%20Let's%20Encrypt.
+```
 kubectl 
 apply -f TRAEFIK-MANUAL-INSTALL/crd-traefik-ingress.yaml
 kubectl apply -f TRAEFIK-MANUAL-INSTALL/svc-whoami.yaml
